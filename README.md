@@ -118,7 +118,7 @@ Then use the full path in your Claude Desktop config:
 1. Sign up at [https://convolut.app](https://convolut.app)
 2. Navigate to Settings → API Keys  
 3. Generate a new API key
-4. Copy the key (format: `conair_sk_...`)
+4. Copy the key (format: `convolut_sk_...`)
 
 ### Environment Variables
 You can also set the API key as an environment variable:
@@ -134,7 +134,7 @@ export CONVOLUT_API_KEY=your_api_key_here
 ## Architecture
 
 ```
-Claude Desktop (MCP Client) → stdio → convolut-mcp (MCP Server) → HTTPS → api.convolut.app
+Claude Desktop (or other MCP Client) → stdio → convolut-mcp (MCP Server) → HTTPS → api.convolut.app
 ```
 
 This MCP server provides a direct, efficient bridge between Claude Desktop and the Convolut API, with no intermediate servers required.
@@ -202,14 +202,14 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Support
 
-- **Documentation:** [https://docs.convolut.app/mcp](https://docs.convolut.app/mcp)
+- **Documentation:** [https://docs.convolut.app/mcp](https://convolut.app/mcp)
 - **Issues:** [https://github.com/convolut/convolut-mcp/issues](https://github.com/convolut/convolut-mcp/issues)
-- **Discord:** [https://discord.gg/convolut](https://discord.gg/convolut)
+- **Discord:** [https://discord.gg/convolut-ai](https://discord.gg/nptmrvEE)
 
 ## Related Projects
 
 - [Convolut Web App](https://convolut.app) - Main context management platform
-- [Convolut API Documentation](https://docs.convolut.app/api) - REST API reference
+- [Convolut API Documentation](https://convolut.app/apis-mcp) - REST API reference
 - [MCP Specification](https://modelcontextprotocol.io) - Model Context Protocol standard
 
 ---
