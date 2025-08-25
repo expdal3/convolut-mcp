@@ -87,7 +87,7 @@ If you prefer to install locally:
 
 ```bash
 # Clone or download the package
-git clone https://github.com/convolut/convolut-mcp.git
+git clone https://github.com/expdal3/convolut-mcp.git
 cd convolut-mcp
 
 # Install dependencies (none required - pure Node.js!)
@@ -203,7 +203,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ## Support
 
 - **Documentation:** [https://docs.convolut.app/mcp](https://convolut.app/mcp)
-- **Issues:** [https://github.com/convolut/convolut-mcp/issues](https://github.com/convolut/convolut-mcp/issues)
+- **Issues:** [https://github.com/expdal3/convolut-mcp/issues](https://github.com/expdal3/convolut-mcp/issues)
 - **Discord:** [https://discord.gg/convolut-ai](https://discord.gg/nptmrvEE)
 
 ## Related Projects
