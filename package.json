@@ -1,0 +1,51 @@
+{
+  "name": "@convolut/convolut-mcp",
+  "version": "1.0.0",
+  "description": "Official MCP server for Convolut Context Bank integration with Claude Desktop and other MCP clients",
+  "main": "stdio-client.cjs",
+  "type": "commonjs",
+  "bin": {
+    "convolut-mcp": "./stdio-client.cjs"
+  },
+  "scripts": {
+    "start": "node stdio-client.cjs"
+  },
+  "keywords": [
+    "mcp",
+    "server",
+    "convolut",
+    "context",
+    "ai",
+    "claude",
+    "claude-desktop",
+    "anthropic",
+    "mcp-server",
+    "context-management"
+  ],
+  "author": "Convolut Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/convolut/convolut-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/convolut/convolut-mcp/issues"
+  },
+  "homepage": "https://convolut.app",
+  "dependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "stdio-client.cjs",
+    "utils/",
+    "tools/",
+    "types/",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}
