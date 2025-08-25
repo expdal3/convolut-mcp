@@ -5,7 +5,7 @@
   "main": "stdio-client.cjs",
   "type": "commonjs",
   "bin": {
-    "convolut-mcp": "./stdio-client.cjs"
+    "convolut-mcp": "stdio-client.cjs"
   },
   "scripts": {
     "start": "node stdio-client.cjs"
@@ -26,13 +26,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/convolut/convolut-mcp.git"
+    "url": "git+https://github.com/expdal3/convolut-mcp.git"
   },
   "bugs": {
-    "url": "https://github.com/convolut/convolut-mcp/issues"
+    "url": "https://github.com/expdal3/convolut-mcp/issues"
   },
   "homepage": "https://convolut.app",
-  "dependencies": {},
   "engines": {
     "node": ">=18.0.0"
   },
