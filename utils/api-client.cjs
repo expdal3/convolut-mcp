@@ -11,7 +11,7 @@ class ConvolutAPIClient {
     this.apiKey = apiKey;
   }
 
-  async request(endpoint, options = {}) {
+  async request(endpoint, options = {}, maxRedirects = 5) {
     const url = new URL(`${this.baseUrl}${endpoint}`);
     
     const requestOptions = {
@@ -36,6 +36,84 @@ class ConvolutAPIClient {
 
         res.on('end', () => {
           try {
+            // Handle 307 redirects (and other 3xx redirects)
+            if (res.statusCode === 307 || res.statusCode === 301 || res.statusCode === 302) {
+              if (maxRedirects <= 0) {
+                reject(new Error(`Too many redirects. Last status: ${res.statusCode}`));
+                return;
+              }
+              
+              const location = res.headers.location;
+              if (!location) {
+                reject(new Error(`Redirect response ${res.statusCode} missing Location header`));
+                return;
+              }
+              
+              // Handle relative and absolute URLs
+              let redirectUrl;
+              if (location.startsWith('http')) {
+                redirectUrl = new URL(location);
+              } else {
+                redirectUrl = new URL(location, `https://${url.hostname}`);
+              }
+              
+              // Update request options for redirect
+              const redirectRequestOptions = {
+                ...requestOptions,
+                hostname: redirectUrl.hostname,
+                port: redirectUrl.port || 443,
+                path: redirectUrl.pathname + redirectUrl.search
+              };
+              
+              // Make redirected request
+              const redirectReq = https.request(redirectRequestOptions, (redirectRes) => {
+                let redirectData = '';
+                redirectRes.on('data', (chunk) => {
+                  redirectData += chunk;
+                });
+                
+                redirectRes.on('end', () => {
+                  try {
+                    // Check if we need to redirect again
+                    if ((redirectRes.statusCode === 307 || redirectRes.statusCode === 301 || redirectRes.statusCode === 302) && maxRedirects > 1) {
+                      // Recursive redirect handling
+                      const newEndpoint = redirectUrl.pathname + redirectUrl.search;
+                      this.request(newEndpoint.replace('/v1', ''), options, maxRedirects - 1)
+                        .then(resolve)
+                        .catch(reject);
+                      return;
+                    }
+                    
+                    if (!redirectRes.statusCode || redirectRes.statusCode < 200 || redirectRes.statusCode >= 300) {
+                      reject(new Error(`API Error ${redirectRes.statusCode}: ${redirectData}`));
+                      return;
+                    }
+                    
+                    const response = JSON.parse(redirectData);
+                    resolve(response);
+                  } catch (error) {
+                    reject(new Error(`Invalid JSON response from redirect: ${redirectData}`));
+                  }
+                });
+              });
+              
+              redirectReq.on('error', (error) => {
+                reject(error);
+              });
+              
+              redirectReq.setTimeout(10000, () => {
+                redirectReq.destroy();
+                reject(new Error('Redirect request timeout'));
+              });
+              
+              if (options.body && (options.method === 'POST' || options.method === 'PUT')) {
+                redirectReq.write(options.body);
+              }
+              redirectReq.end();
+              
+              return;
+            }
+            
             if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 300) {
               reject(new Error(`API Error ${res.statusCode}: ${data}`));
               return;
