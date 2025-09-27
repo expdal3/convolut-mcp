@@ -104,7 +104,7 @@ async function handleSearchContexts(args, apiClient) {
     }
 
     const searchParams = {
-      contain: args.query,
+      search: args.query,  // Changed from 'contain' to 'search' to match API wrapper
       limit: args.limit || 10,
     };
 
