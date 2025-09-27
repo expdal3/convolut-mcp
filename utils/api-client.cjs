@@ -1,5 +1,6 @@
 /**
  * Convolut API Client for direct MCP server integration
+ * FIXED VERSION: Handles both direct array and paginated object responses
  */
 
 const https = require('https');
@@ -13,7 +14,7 @@ class ConvolutAPIClient {
 
   async request(endpoint, options = {}, maxRedirects = 5) {
     const url = new URL(`${this.baseUrl}${endpoint}`);
-    
+
     const requestOptions = {
       hostname: url.hostname,
       port: url.port || 443,
@@ -42,13 +43,13 @@ class ConvolutAPIClient {
                 reject(new Error(`Too many redirects. Last status: ${res.statusCode}`));
                 return;
               }
-              
+
               const location = res.headers.location;
               if (!location) {
                 reject(new Error(`Redirect response ${res.statusCode} missing Location header`));
                 return;
               }
-              
+
               // Handle relative and absolute URLs
               let redirectUrl;
               if (location.startsWith('http')) {
@@ -56,7 +57,7 @@ class ConvolutAPIClient {
               } else {
                 redirectUrl = new URL(location, `https://${url.hostname}`);
               }
-              
+
               // Update request options for redirect
               const redirectRequestOptions = {
                 ...requestOptions,
@@ -64,14 +65,14 @@ class ConvolutAPIClient {
                 port: redirectUrl.port || 443,
                 path: redirectUrl.pathname + redirectUrl.search
               };
-              
+
               // Make redirected request
               const redirectReq = https.request(redirectRequestOptions, (redirectRes) => {
                 let redirectData = '';
                 redirectRes.on('data', (chunk) => {
                   redirectData += chunk;
                 });
-                
+
                 redirectRes.on('end', () => {
                   try {
                     // Check if we need to redirect again
@@ -83,12 +84,12 @@ class ConvolutAPIClient {
                         .catch(reject);
                       return;
                     }
-                    
+
                     if (!redirectRes.statusCode || redirectRes.statusCode < 200 || redirectRes.statusCode >= 300) {
                       reject(new Error(`API Error ${redirectRes.statusCode}: ${redirectData}`));
                       return;
                     }
-                    
+
                     const response = JSON.parse(redirectData);
                     resolve(response);
                   } catch (error) {
@@ -96,29 +97,29 @@ class ConvolutAPIClient {
                   }
                 });
               });
-              
+
               redirectReq.on('error', (error) => {
                 reject(error);
               });
-              
+
               redirectReq.setTimeout(10000, () => {
                 redirectReq.destroy();
                 reject(new Error('Redirect request timeout'));
               });
-              
+
               if (options.body && (options.method === 'POST' || options.method === 'PUT')) {
                 redirectReq.write(options.body);
               }
               redirectReq.end();
-              
+
               return;
             }
-            
+
             if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 300) {
               reject(new Error(`API Error ${res.statusCode}: ${data}`));
               return;
             }
-            
+
             const response = JSON.parse(data);
             resolve(response);
           } catch (error) {
@@ -146,7 +147,7 @@ class ConvolutAPIClient {
   // Context operations
   async listContexts(params = {}) {
     const queryParams = new URLSearchParams();
-    
+
     if (params.limit) queryParams.append('limit', params.limit.toString());
     if (params.offset) queryParams.append('offset', params.offset.toString());
     if (params.contain) queryParams.append('contain', params.contain);
@@ -164,12 +165,15 @@ class ConvolutAPIClient {
     // The Convolut API doesn't have a direct GET /contexts/{id} endpoint
     // Instead, we use the list endpoint and filter by searching for the specific ID
     const response = await this.listContexts({ limit: 100 });
-    const context = response.items.find(item => item.id === contextId);
-    
+
+    // FIXED: Handle both direct array response and paginated object response
+    const contexts = Array.isArray(response) ? response : response.items || [];
+    const context = contexts.find(item => item.id === contextId);
+
     if (!context) {
       throw new Error(`Context with ID ${contextId} not found`);
     }
-    
+
     return context;
   }
 
@@ -228,7 +232,7 @@ class ConvolutAPIClient {
   async healthCheck() {
     const healthUrl = this.baseUrl.replace('/v1', '') + '/health';
     const url = new URL(healthUrl);
-    
+
     const requestOptions = {
       hostname: url.hostname,
       port: url.port || 443,
@@ -252,7 +256,7 @@ class ConvolutAPIClient {
               reject(new Error(`Health check failed: ${res.statusCode} ${data}`));
               return;
             }
-            
+
             const response = JSON.parse(data);
             resolve(response);
           } catch (error) {
