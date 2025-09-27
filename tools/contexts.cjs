@@ -1,5 +1,6 @@
 /**
  * MCP Tools for Context Management
+ * FIXED VERSION: Handles both direct array and paginated object responses
  */
 
 const { ConvolutAPIClient } = require('../utils/api-client.cjs');
@@ -25,7 +26,7 @@ function validateContextSearch(args) {
   if (args.from) params.from = args.from;
   if (args.to) params.to = args.to;
   if (args.is_favorite !== undefined) params.is_favorite = args.is_favorite;
-  
+
   return params;
 }
 
@@ -43,21 +44,21 @@ function validateCreateContext(args) {
   if (!args.content || typeof args.content !== 'string' || args.content.trim().length === 0) {
     throw new Error('content is required and must be a non-empty string');
   }
-  
+
   const data = {
     title: args.title.trim(),
     content: args.content.trim(),
     category: args.category || 'other',
     is_favorite: args.is_favorite || false
   };
-  
+
   if (args.tags && Array.isArray(args.tags)) {
     data.tags = args.tags;
   }
   if (args.files && Array.isArray(args.files)) {
     data.files = args.files;
   }
-  
+
   return data;
 }
 
@@ -79,7 +80,7 @@ function validateUpdateContext(args) {
   if (args.is_favorite !== undefined) data.is_favorite = args.is_favorite;
   if (args.tags !== undefined) data.tags = args.tags;
   if (args.files !== undefined) data.files = args.files;
-  
+
   return data;
 }
 
@@ -88,17 +89,23 @@ async function handleListContexts(args, apiClient) {
   try {
     const params = validateContextSearch(args);
     const response = await apiClient.listContexts(params);
-    
+
+    // FIXED: Handle both response formats
+    const contexts = Array.isArray(response) ? response : response.items || [];
+    const totalCount = Array.isArray(response) ? response.length : response.total_count || 0;
+    const limit = params.limit || 20;
+    const offset = params.offset || 0;
+
     return {
       content: [{
         type: 'text',
         text: JSON.stringify({
-          contexts: response.items,
+          contexts: contexts,
           pagination: {
-            total: response.total_count,
-            limit: response.limit,
-            offset: response.offset,
-            hasMore: (response.offset || 0) + response.items.length < response.total_count,
+            total: totalCount,
+            limit: limit,
+            offset: offset,
+            hasMore: offset + contexts.length < totalCount,
           },
         }, null, 2),
       }],
@@ -118,7 +125,7 @@ async function handleGetContext(args, apiClient) {
   try {
     const { context_id } = validateContextId(args);
     const context = await apiClient.getContext(context_id);
-    
+
     return {
       content: [{
         type: 'text',
@@ -140,7 +147,7 @@ async function handleCreateContext(args, apiClient) {
   try {
     const contextData = validateCreateContext(args);
     const context = await apiClient.createContext(contextData);
-    
+
     return {
       content: [{
         type: 'text',
@@ -166,9 +173,9 @@ async function handleUpdateContext(args, apiClient) {
     const { context_id, ...updates } = args;
     validateContextId({ context_id });
     const updateData = validateUpdateContext(updates);
-    
+
     const context = await apiClient.updateContext(context_id, updateData);
-    
+
     return {
       content: [{
         type: 'text',
@@ -193,7 +200,7 @@ async function handleDeleteContext(args, apiClient) {
   try {
     const { context_id } = validateContextId(args);
     await apiClient.deleteContext(context_id);
-    
+
     return {
       content: [{
         type: 'text',
