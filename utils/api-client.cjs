@@ -150,7 +150,7 @@ class ConvolutAPIClient {
 
     if (params.limit) queryParams.append('limit', params.limit.toString());
     if (params.offset) queryParams.append('offset', params.offset.toString());
-    if (params.contain) queryParams.append('contain', params.contain);
+    if (params.contain) queryParams.append('search', params.contain);  // Use 'search' for keyword filtering
     if (params.category) queryParams.append('category', params.category);
     if (params.tags && params.tags.length) queryParams.append('tags', params.tags.join(','));
     if (params.from) queryParams.append('from', params.from);
@@ -195,6 +195,21 @@ class ConvolutAPIClient {
     return await this.request(`/contexts/${contextId}`, {
       method: 'DELETE',
     });
+  }
+
+  async searchContexts(params = {}) {
+    const queryParams = new URLSearchParams();
+
+    if (params.query) queryParams.append('search', params.query); // The 'query' from the tool maps to 'search' in the API
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.offset) queryParams.append('offset', params.offset.toString());
+    if (params.category) queryParams.append('category', params.category);
+    if (params.tags && params.tags.length) queryParams.append('tags', params.tags.join(','));
+
+    const endpoint = `/contexts${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    // This hits the GET /contexts endpoint, which now has the enhanced
+    // server-side decrypted search functionality via the 'search' parameter.
+    return await this.request(endpoint);
   }
 
   // AI-powered operations
