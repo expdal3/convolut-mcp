@@ -127,6 +127,7 @@ test-request.json
 simple-client.cjs
 examples/
 test-mcp.cjs
+CLAUDE.md
 
 # Log files
 *.log
